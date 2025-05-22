@@ -3,7 +3,6 @@ import pickle
 from pathlib import Path
 from PIL import Image, ImageOps
 import numpy as np
-import matplotlib.pyplot as plt
 # Load the model
 file_path = Path(__file__).parent
 with open(f"{file_path}/weights/lg.pkl", 'rb') as f:
