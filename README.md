@@ -1,3 +1,3 @@
 # Streamlit Mail Classifier
 
-This project makes use of `MultinomialNB` and `LogisticRegression` from sklearn to classify mail as spam or not spam
+This project makes use of `LogisticRegression` from sklearn to classify handwritten digits
