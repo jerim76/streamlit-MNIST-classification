@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+instance/
+dist/
+build/
+
+# Virtual environment
+venv/
+.venv/
+env/
+ENV/
+venv.bak/
+.env.bak/
+
+# IDE and editor specific
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets
+.env
+*.env.*
+!*.env.example
+
+# Coverage reports
+.coverage
+coverage.xml
+htmlcov/
+
+# Flask specific
+instance/*
+!instance/.gitkeep
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.bak
+*.cache

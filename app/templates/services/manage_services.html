@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% from "_form_helpers.html" import render_field %}
+
+{% block title %}Manage Your Services - {{ super() }}{% endblock %}
+
+{% block content %}
+    <h2>Manage Your Services</h2>
+
+    {% if not current_user.is_verified_freelancer %}
+    <p class="alert alert-warning">Your freelancer account is not yet verified. You can add services, but they might not be publicly visible until verification.</p>
+    {% endif %}
+
+    <h3>Your Current Services</h3>
+    {% if services and services.items %}
+        <ul>
+            {% for service in services.items %}
+                <li>
+                    <strong>{{ service.name }}</strong> ({{ service.category.name }}) - {{ service.price_description }}
+                    {% if service.estimated_price %}(Approx: KES {{ service.estimated_price }}){% endif %}
+                    <br>
+                    <em>{{ service.description[:100] }}{% if service.description|length > 100 %}...{% endif %}</em>
+                    <br>
+                    Status: {% if service.is_active %}Active{% else %}Inactive{% endif %} |
+                    <a href="{{ url_for('main.edit_service', service_id=service.id) }}">Edit</a> |
+                    {% if service.is_active %}
+                        <a href="{{ url_for('main.toggle_service_activation', service_id=service.id) }}">Deactivate</a>
+                    {% else %}
+                        <a href="{{ url_for('main.toggle_service_activation', service_id=service.id) }}">Activate</a>
+                    {% endif %}
+                    <!-- Add delete option with confirmation later -->
+                </li>
+            {% endfor %}
+        </ul>
+        <!-- Add pagination if many services -->
+    {% else %}
+        <p>You have not listed any services yet.</p>
+    {% endif %}
+
+    <hr>
+
+    <h3>{{ 'Edit Service' if form.service_id.data else 'Add New Service' }}</h3>
+    <form method="POST" action="{{ url_for('main.manage_services') if not form.service_id.data else url_for('main.edit_service', service_id=form.service_id.data) }}">
+        {{ form.hidden_tag() }}
+        {% if form.service_id.data %} <!-- Include service_id if editing -->
+             <input type="hidden" name="service_id" value="{{ form.service_id.data }}">
+        {% endif %}
+        <div class="form-group">
+            {{ render_field(form.name, placeholder="e.g., Expert Sink Repair, Full Day House Cleaning") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.category, class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.description, placeholder="Detailed description of the service you offer...") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.price_description, placeholder="e.g., KES 1000 per hour, KES 5000 fixed, Quote on request") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.estimated_price, placeholder="Estimated Price (e.g., 1500.00) (Optional)") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.location_served, placeholder="e.g., Nairobi West, Kilimani, Remote") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.availability_schedule, placeholder="e.g., Mon-Fri 9am-5pm, Weekends by appointment") }}
+        </div>
+        <div class="form-group">
+            {{ form.is_active.label }} {{ form.is_active() }}
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn", value=('Update Service' if form.service_id.data else 'Add Service')) }}
+        </div>
+    </form>
+{% endblock %}

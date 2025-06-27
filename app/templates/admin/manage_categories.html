@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{# {% from "_form_helpers.html" import render_field %} #} {# Uncomment if using a form #}
+
+{% block title %}Manage Service Categories - {{ super() }}{% endblock %}
+
+{% block content %}
+    <h2>Manage Service Categories</h2>
+
+    {# Placeholder for Add/Edit Category Form - to be implemented later if needed #}
+    {#
+    <h3>{{ 'Edit Category' if form.category_id.data else 'Add New Category' }}</h3>
+    <form method="POST" action="{{ url_for('admin.manage_categories') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ render_field(form.name, placeholder="Category Name") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.description, placeholder="Category Description (Optional)") }}
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn", value=('Update Category' if form.category_id.data else 'Add Category')) }}
+        </div>
+    </form>
+    <hr>
+    #}
+    <p><em>Category creation/editing via UI is not yet implemented. Categories are currently seeded.</em></p>
+
+
+    <h3>Existing Categories</h3>
+    {% if categories %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    {# <th>Actions</th> #}
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in categories %}
+                    <tr>
+                        <td>{{ category.id }}</td>
+                        <td>{{ category.name }}</td>
+                        <td>{{ category.description or 'N/A' }}</td>
+                        {# <td>Edit | Delete</td> #} {# Actions to be implemented later #}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No service categories found. Consider running the seed command: <code>flask seed-db</code></p>
+    {% endif %}
+{% endblock %}
+
+{% block head_extra %}
+<style>
+    .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    .table th { background-color: #f2f2f2; }
+</style>
+{% endblock %}

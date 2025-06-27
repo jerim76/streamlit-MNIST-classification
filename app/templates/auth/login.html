@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "_form_helpers.html" import render_field %}
+
+{% block title %}Login - {{ super() }}{% endblock %}
+
+{% block content %}
+    <h2>Login</h2>
+    <form method="POST" action="{{ url_for('auth.login') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ render_field(form.phone_number, placeholder="Your Phone Number (e.g. 07xxxxxxxx)") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.password, placeholder="Your Password") }}
+        </div>
+        <div class="form-group">
+            {{ form.remember_me() }} {{ form.remember_me.label }}
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn") }}
+        </div>
+    </form>
+    <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a>.</p>
+    <!-- <p><a href="#">Forgot Password?</a></p> -->
+{% endblock %}

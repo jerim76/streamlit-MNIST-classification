@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "_form_helpers.html" import render_field %}
+
+{% block title %}Edit Profile - {{ super() }}{% endblock %}
+
+{% block content %}
+    <h2>Edit Profile</h2>
+    <form method="POST" action="{{ url_for('auth.edit_profile') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ render_field(form.full_name, placeholder="Your Full Name") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.email, placeholder="Your Email Address (Optional)") }}
+        </div>
+
+        <hr>
+        <h4>Change Password (Optional)</h4>
+        <div class="form-group">
+            {{ render_field(form.current_password, placeholder="Current Password (if changing)") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.new_password, placeholder="New Password") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.confirm_new_password, placeholder="Confirm New Password") }}
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn", value="Update Profile") }}
+        </div>
+    </form>
+{% endblock %}

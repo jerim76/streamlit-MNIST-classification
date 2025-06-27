@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% from "_form_helpers.html" import render_field %}
+
+{% block title %}Leave Review for Booking #{{ booking.id }} - {{ super() }}{% endblock %}
+
+{% block content %}
+    <h2>Leave a Review</h2>
+
+    {% if booking %}
+        <p>You are reviewing your booking with <strong>{{ booking.freelancer.full_name }}</strong> for the service:
+        <strong>"{{ booking.service.name if booking.service else booking.service_details_custom }}"</strong>,
+        which took place on {{ booking.booking_time.strftime('%Y-%m-%d %H:%M') }}.</p>
+    {% else %}
+        <p class="alert alert-danger">Booking details not found. Cannot leave a review.</p>
+        <a href="{{ url_for('main.dashboard') }}" class="btn">Back to Dashboard</a>
+        {# This case should ideally not happen if routing is correct #}
+    {% endif %}
+
+    {% if form and booking %}
+        <form method="POST" action="{{ url_for('main.leave_review', booking_id=booking.id) }}">
+            {{ form.hidden_tag() }}
+
+            {# If booking_id is part of the form, ensure it's rendered if hidden #}
+            {% if form.booking_id %}
+                {{ form.booking_id() }}
+            {% endif %}
+
+            <div class="form-group">
+                {{ render_field(form.rating, class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ render_field(form.comment, placeholder="Share your experience...") }}
+            </div>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-primary", value="Submit Review") }}
+            </div>
+        </form>
+    {% elif not booking %}
+        {# Handled above #}
+    {% else %}
+        <p class="alert alert-warning">The review form could not be loaded. Please try again later.</p>
+         <a href="{{ url_for('main.dashboard') }}" class="btn">Back to Dashboard</a>
+    {% endif %}
+
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}View All Bookings - Admin - {{ super() }}{% endblock %}
+{% block content %}
+    <h2>View All Bookings (Admin)</h2>
+    <p>This page is a placeholder for viewing all bookings across the platform.</p>
+    <p><em>Full implementation to come later.</em></p>
+    {% if bookings %}
+        <p>Number of bookings: {{ bookings|length }}</p>
+        {# TODO: Display bookings in a table #}
+    {% else %}
+        <p>No bookings to display currently.</p>
+    {% endif %}
+    <a href="{{ url_for('admin.index') }}" class="btn">Back to Admin Dashboard</a>
+{% endblock %}

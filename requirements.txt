@@ -1,6 +1,32 @@
-pandas==2.2.3
-scikit-learn==1.6.1
-streamlit==1.44.0
-torchvision
-torch
-pillow
+Flask>=2.0.0,<3.0.0 # Using a range for Flask
+Flask-SQLAlchemy>=2.5.0,<4.0.0
+Flask-Migrate>=3.0.0,<5.0.0
+SQLAlchemy>=1.4.0,<3.0.0 # Ensure compatibility with Flask-SQLAlchemy
+SQLAlchemy-Utils>=0.37.0 # For database utility types like ChoiceType for Enums
+psycopg2-binary # For PostgreSQL (even if using SQLite for dev, good to have for prod)
+python-dotenv>=0.19.0
+bcrypt>=3.2.0 # For password hashing
+Flask-Login>=0.5.0 # For session-based web authentication
+Flask-WTF>=0.15.0 # For web forms
+Werkzeug>=2.0.0,<3.0.0 # Pinning Werkzeug as newer versions can sometimes break Flask extensions
+gunicorn # For production WSGI server
+# For API development (can be added later if focusing on web first)
+# Flask-RESTx or Flask-Smorest
+# marshmallow
+
+# For WhatsApp/Twilio (to be added when working on WhatsApp part)
+twilio>=7.0.0 # For Twilio API interaction (WhatsApp)
+
+# For M-Pesa (to be added when working on payment part)
+requests>=2.25.0 # For making HTTP requests to M-Pesa API
+# Add specific M-Pesa SDK later if direct requests become too complex
+
+# Linters and formatters (development dependencies, often managed separately, e.g. with pre-commit)
+# flake8
+# black
+# isort
+
+# Testing
+# pytest
+# pytest-flask
+# coverage

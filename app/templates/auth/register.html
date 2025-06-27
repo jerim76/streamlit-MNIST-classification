@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% from "_form_helpers.html" import render_field %}
+
+{% block title %}Register - {{ super() }}{% endblock %}
+
+{% block content %}
+    <h2>Register New Account</h2>
+    <form method="POST" action="{{ url_for('auth.register') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ render_field(form.full_name, placeholder="Your Full Name") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.phone_number, placeholder="Phone Number (e.g. 07xxxxxxxx or +2547xxxxxxxx)") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.email, placeholder="Your Email Address (Optional)") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.password, placeholder="Choose a Password") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.confirm_password, placeholder="Confirm Your Password") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.role, class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn") }}
+        </div>
+    </form>
+    <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a>.</p>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}View All Users - {{ super() }}{% endblock %}
+
+{% block content %}
+    <h2>View All Users</h2>
+
+    {% if users %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Verified FL</th>
+                    <th>Active</th>
+                    <th>Registered</th>
+                    {# <th>Actions</th> #}
+                </tr>
+            </thead>
+            <tbody>
+                {% for user_item in users %} {# Renamed to user_item to avoid conflict with current_user #}
+                    <tr>
+                        <td>{{ user_item.id }}</td>
+                        <td>{{ user_item.full_name }}</td>
+                        <td>{{ user_item.phone_number }}</td>
+                        <td>{{ user_item.email or 'N/A' }}</td>
+                        <td>{{ user_item.role.value if user_item.role else 'N/A' }}</td>
+                        <td>
+                            {% if user_item.role == UserRole.FREELANCER %}
+                                {{ 'Yes' if user_item.is_verified_freelancer else 'No' }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>{{ 'Yes' if user_item.is_active else 'No' }}</td>
+                        <td>{{ user_item.created_at.strftime('%Y-%m-%d') if user_item.created_at else 'N/A' }}</td>
+                        {# <td>
+                            {% if user_item.role == UserRole.FREELANCER %}
+                                <a href="{{ url_for('admin.toggle_freelancer_verification', user_id=user_item.id) }}">
+                                    {{ 'Revoke' if user_item.is_verified_freelancer else 'Verify' }}
+                                </a>
+                            {% endif %}
+                        </td> #}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No users found.</p>
+    {% endif %}
+{% endblock %}
+
+{% block head_extra %}
+<style>
+    .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    .table th { background-color: #f2f2f2; }
+</style>
+{% endblock %}

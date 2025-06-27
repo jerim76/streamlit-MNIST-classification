@@ -1,0 +1,36 @@
+{# Macro to render a single form field with errors #}
+{% macro render_field(field, placeholder=None, class=None) %}
+    {{ field.label(class="form-label") }}
+    {% if placeholder %}
+        {{ field(class="form-control" + (" is-invalid" if field.errors else "") + (" " + class if class else ""), placeholder=placeholder) }}
+    {% else %}
+        {{ field(class="form-control" + (" is-invalid" if field.errors else "") + (" " + class if class else "")) }}
+    {% endif %}
+    {% if field.errors %}
+        <div class="invalid-feedback">
+            {% for error in field.errors %}
+                <span>{{ error }}</span><br>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endmacro %}
+
+{# Macro to render a submit button, useful if you want consistent styling #}
+{% macro render_submit_button(field, text=None, class="btn btn-primary") %}
+  {{ field(text or field.label.text, class=class) }}
+{% endmacro %}
+
+{# Macro for flashing messages if you prefer this over the base template's way #}
+{% macro flash_messages() %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flashes">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category if category else 'info' }}" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+{% endmacro %}

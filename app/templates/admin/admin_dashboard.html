@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - {{ super() }}{% endblock %}
+
+{% block content %}
+    <h2>Admin Dashboard</h2>
+    <p>Welcome, {{ current_user.full_name }} (Admin)!</p>
+
+    <ul class="admin-actions">
+        <li><a href="{{ url_for('admin.manage_freelancers') }}" class="btn">Manage & Verify Freelancers</a></li>
+        <li><a href="{{ url_for('admin.manage_categories') }}" class="btn">Manage Service Categories</a></li>
+        <li><a href="{{ url_for('admin.view_users') }}" class="btn">View All Users</a></li>
+        <li><a href="{{ url_for('admin.view_services') }}" class="btn">View All Services (Placeholder)</a></li>
+        <li><a href="{{ url_for('admin.view_bookings') }}" class="btn">View All Bookings (Placeholder)</a></li>
+        <!-- Add more admin actions here -->
+    </ul>
+{% endblock %}
+
+{% block head_extra %}
+<style>
+    .admin-actions li { margin-bottom: 10px; }
+</style>
+{% endblock %}

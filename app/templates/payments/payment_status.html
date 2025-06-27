@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Status for Booking #{{ booking.id }} - {{ super() }}{% endblock %}
+
+{% block content %}
+    <h2>Payment Status for Booking #{{ booking.id }}</h2>
+
+    <p><strong>Service:</strong> {{ booking.service.name if booking.service else booking.service_details_custom }}</p>
+    <p><strong>Freelancer:</strong> {{ booking.freelancer.full_name }}</p>
+    <p><strong>Booking Date:</strong> {{ booking.booking_time.strftime('%Y-%m-%d %H:%M') }}</p>
+    <p><strong>Booking Status:</strong> <span class="status-{{ booking.status.value }}">{{ booking.status.value.replace('_', ' ')|capitalize }}</span></p>
+
+    <hr>
+
+    {% if payment %}
+        <h3>Payment Details:</h3>
+        <p><strong>Payment Amount:</strong> {{ payment.currency }} {{ "%.2f"|format(payment.amount) }}</p>
+        <p><strong>Payment Status:</strong> <span class="payment-status-{{ payment.status.value }}">{{ payment.status.value.replace('_', ' ')|capitalize }}</span></p>
+        {% if payment.mpesa_transaction_id %}
+            <p><strong>M-Pesa Transaction ID:</strong> {{ payment.mpesa_transaction_id }}</p>
+        {% endif %}
+        {% if payment.merchant_request_id %}
+            <p><strong>Merchant Request ID:</strong> {{ payment.merchant_request_id }}</p>
+        {% endif %}
+        {% if payment.checkout_request_id %}
+            <p><strong>Checkout Request ID:</strong> {{ payment.checkout_request_id }}</p>
+        {% endif %}
+        <p><strong>Last Updated:</strong> {{ payment.updated_at.strftime('%Y-%m-%d %H:%M:%S %Z') if payment.updated_at else 'N/A' }}</p>
+
+        {% if payment.status == PaymentStatus.PENDING %}
+            <p class="alert alert-info">Your payment is currently pending. If you have completed the STK push, please wait a few moments for the status to update. You can refresh this page.</p>
+            {# Optionally add a manual "check status" button here later, that calls Safaricom's Query API #}
+        {% elif payment.status == PaymentStatus.FAILED %}
+            <p class="alert alert-danger">Your payment attempt failed.</p>
+            {% if booking.status == BookingStatus.CONFIRMED %}
+                 <form method="POST" action="{{ url_for('payment.initiate_booking_payment', booking_id=booking.id) }}" style="display: inline;">
+                    <input type="submit" value="Retry Payment" class="btn btn-warning">
+                </form>
+            {% endif %}
+        {% elif payment.status == PaymentStatus.SUCCESSFUL %}
+            <p class="alert alert-success">Your payment was successful!</p>
+        {% endif %}
+
+        <h4>Debug Information (Admin/Dev only):</h4>
+        <details>
+            <summary>View Raw Payloads</summary>
+            <h5>Initiation Payload:</h5>
+            <pre><code>{{ payment.payment_initiation_payload or 'N/A' }}</code></pre>
+            <h5>Confirmation Payload (Callback Data):</h5>
+            <pre><code>{{ payment.payment_confirmation_payload or 'N/A' }}</code></pre>
+        </details>
+
+    {% else %}
+        <p class="alert alert-warning">No payment information found for this booking yet.</p>
+        {% if booking.status == BookingStatus.CONFIRMED %}
+            <form method="POST" action="{{ url_for('payment.initiate_booking_payment', booking_id=booking.id) }}" style="display: inline;">
+                <input type="submit" value="Pay Now" class="btn">
+            </form>
+        {% endif %}
+    {% endif %}
+
+    <br>
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+{% endblock %}
+
+{% block head_extra %}
+<style>
+    .status-pending { color: orange; font-weight: bold; }
+    .status-confirmed { color: green; font-weight: bold; }
+    .status-completed { color: blue; font-weight: bold; }
+    .status-cancelled_client, .status-cancelled_freelancer { color: red; font-weight: bold; }
+    .payment-status-pending { color: orange; }
+    .payment-status-successful { color: green; }
+    .payment-status-failed { color: red; }
+    pre { background-color: #eee; padding: 10px; border-radius: 3px; white-space: pre-wrap; word-wrap: break-word; }
+</style>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results for "{{ query }}" - {{ super() }}{% endblock %}
+
+{% block content %}
+    <h2>Search Results</h2>
+
+    <form method="GET" action="{{ url_for('main.search_results') }}">
+        <div class="form-group">
+            <label for="service_type">Service/Keyword:</label>
+            <input type="text" name="service_type" id="service_type" value="{{ query or '' }}" placeholder="e.g., Plumber, Electrician, Tutoring">
+        </div>
+        <div class="form-group">
+            <label for="location">Location:</label>
+            <input type="text" name="location" id="location" value="{{ location or '' }}" placeholder="e.g., Nairobi West">
+        </div>
+        <input type="submit" value="Search Again" class="btn">
+    </form>
+    <hr>
+
+    {% if services and services.items %}
+        <p>Found {{ services.total }} service(s) matching your criteria.</p>
+        <ul class="service-list">
+            {% for service in services.items %}
+                <li class="service-item">
+                    <h3><a href="{{ url_for('main.freelancer_profile', freelancer_id=service.freelancer.id) }}#service-{{service.id}}">{{ service.name }}</a></h3>
+                    <p><strong>Freelancer:</strong> <a href="{{ url_for('main.freelancer_profile', freelancer_id=service.freelancer.id) }}">{{ service.freelancer.full_name }}</a>
+                        {% if service.freelancer.is_verified_freelancer %}<span class="verified-badge">(Verified)</span>{% endif %}
+                    </p>
+                    <p><strong>Category:</strong> {{ service.category.name }}</p>
+                    <p><strong>Description:</strong> {{ service.description[:200] }}{% if service.description|length > 200 %}...{% endif %}</p>
+                    <p><strong>Price:</strong> {{ service.price_description }} {% if service.estimated_price %}(Approx. KES {{ service.estimated_price }}){% endif %}</p>
+                    <p><strong>Location Served:</strong> {{ service.location_served or 'Not specified' }}</p>
+                    <a href="{{ url_for('main.freelancer_profile', freelancer_id=service.freelancer.id) }}?service_id={{service.id}}" class="btn">View Details & Book</a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <!-- Pagination -->
+        {% if services.pages > 1 %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    {% if services.has_prev %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('main.search_results', page=services.prev_num, service_type=query, location=location) }}">Previous</a></li>
+                    {% endif %}
+                    {% for page_num in services.iter_pages() %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == services.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('main.search_results', page=page_num, service_type=query, location=location) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if services.has_next %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('main.search_results', page=services.next_num, service_type=query, location=location) }}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+
+    {% else %}
+        <p>No services found matching your criteria "{{ query }}" {% if location %}in "{{ location }}"{% endif %}. Try a different search.</p>
+    {% endif %}
+{% endblock %}
+
+{% block head_extra %}
+<style>
+    .service-list { list-style-type: none; padding: 0; }
+    .service-item { background-color: #f9f9f9; border: 1px solid #eee; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+    .service-item h3 { margin-top: 0; }
+    .verified-badge { color: green; font-size: 0.9em; }
+    .pagination { list-style: none; padding: 0; display: flex; }
+    .pagination .page-item { margin-right: 5px; }
+    .pagination .page-link { text-decoration: none; padding: 5px 10px; border: 1px solid #ddd; color: #337ab7; }
+    .pagination .active .page-link { background-color: #337ab7; color: white; border-color: #337ab7;}
+    .pagination .disabled .page-link { color: #777; }
+</style>
+{% endblock %}

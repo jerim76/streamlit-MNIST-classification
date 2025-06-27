@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - {{ super() }}{% endblock %}
+
+{% block content %}
+    <h2>Dashboard</h2>
+    <p>Welcome back, <strong>{{ current_user.full_name }}</strong>!</p>
+    <p>Your role: {{ current_user.role.value }}</p>
+
+    {% if current_user.role == UserRole.CLIENT %}
+        <h3>Your Bookings:</h3>
+        {% if client_bookings and client_bookings.items %}
+            <ul>
+                {% for booking in client_bookings.items %}
+                    <li>
+                        Service: {{ booking.service.name if booking.service else booking.service_details_custom }}
+                        with {{ booking.freelancer.full_name }}
+                        on {{ booking.booking_time.strftime('%Y-%m-%d %H:%M') }} -
+                        Status: <span class="status-{{ booking.status.value }}">{{ booking.status.value }}</span>
+
+                        {# Payment Status/Action #}
+                        {% if booking.payment %}
+                            (Payment: <a href="{{ url_for('payment.payment_status_view', booking_id=booking.id) }}">{{ booking.payment.status.value }}</a>)
+                            {% if booking.payment.status == PaymentStatus.FAILED %}
+                                <form method="POST" action="{{ url_for('payment.initiate_booking_payment', booking_id=booking.id) }}" style="display: inline;">
+                                    <input type="submit" value="Retry Payment" class="btn btn-warning btn-sm">
+                                </form>
+                            {% endif %}
+                        {% elif booking.status == BookingStatus.CONFIRMED %}
+                             <form method="POST" action="{{ url_for('payment.initiate_booking_payment', booking_id=booking.id) }}" style="display: inline;">
+                                <input type="submit" value="Pay Now" class="btn btn-sm">
+                            </form>
+                        {% endif %}
+
+                        {# Review Action - only if service completed and payment successful (if payment exists) #}
+                        {% if booking.status == BookingStatus.COMPLETED %}
+                            {% if booking.payment and booking.payment.status == PaymentStatus.SUCCESSFUL and booking.reviews.count() == 0 %}
+                                <a href="{{ url_for('main.leave_review', booking_id=booking.id) }}" class="btn btn-info btn-sm">Leave Review</a>
+                            {% elif not booking.payment and booking.reviews.count() == 0 %}
+                                {# Case where payment might not be mandatory or handled externally, allow review after completion #}
+                                <a href="{{ url_for('main.leave_review', booking_id=booking.id) }}" class="btn btn-info btn-sm">Leave Review</a>
+                            {% endif %}
+                        {% endif %}
+                    </li>
+                {% else %}
+                    <li>No bookings found.</li>
+                        {% endif %}
+                    </li>
+                {% else %}
+                    <li>No bookings found.</li>
+                {% endfor %}
+            </ul>
+            <!-- Add pagination if many bookings -->
+        {% else %}
+            <p>You have no active bookings. <a href="{{ url_for('main.index') }}">Find a service provider.</a></p>
+        {% endif %}
+
+    {% elif current_user.role == UserRole.FREELANCER %}
+        <h3>Your Service Requests & Bookings:</h3>
+         {% if freelancer_bookings and freelancer_bookings.items %}
+            <ul>
+                {% for booking in freelancer_bookings.items %}
+                    <li>
+                        Request from: {{ booking.client.full_name }}
+                        for {{ booking.service.name if booking.service else booking.service_details_custom }}
+                        on {{ booking.booking_time.strftime('%Y-%m-%d %H:%M') }} -
+                        Status: <span class="status-{{ booking.status.value }}">{{ booking.status.value }}</span>
+                        {% if booking.status == BookingStatus.PENDING %}
+                            <a href="{{ url_for('main.confirm_booking', booking_id=booking.id) }}" class="btn">Confirm</a>
+                            <a href="{{ url_for('main.reject_booking', booking_id=booking.id) }}" class="btn btn-danger">Reject</a>
+                        {% elif booking.status == BookingStatus.CONFIRMED %}
+                            <a href="{{ url_for('main.mark_booking_completed', booking_id=booking.id) }}" class="btn">Mark as Completed</a>
+                        {% endif %}
+                    </li>
+                {% else %}
+                     <li>No service requests or bookings found.</li>
+                {% endfor %}
+            </ul>
+            <!-- Add pagination -->
+        {% else %}
+            <p>You have no incoming service requests or active bookings.</p>
+        {% endif %}
+
+        <h4>Your Services:</h4>
+        <p><a href="{{ url_for('main.manage_services') }}">Manage Your Services</a></p>
+        {% if not current_user.is_verified_freelancer %}
+        <p class="alert alert-danger">Your freelancer profile is not yet verified. Some features might be limited. Please contact admin.</p>
+        {% endif %}
+
+    {% elif current_user.role == UserRole.ADMIN %}
+        <h3>Admin Dashboard</h3>
+        <p>Welcome, Admin!</p>
+        <ul>
+            <li><a href="{{ url_for('admin.view_users') }}">Manage Users</a></li>
+            <li><a href="{{ url_for('admin.view_services') }}">Manage Services</a></li>
+            <li><a href="{{ url_for('admin.view_bookings') }}">View All Bookings</a></li>
+            <li><a href="{{ url_for('admin.manage_categories') }}">Manage Service Categories</a></li>
+            <li><a href="{{ url_for('admin.verify_freelancers') }}">Verify Freelancers</a></li>
+        </ul>
+    {% endif %}
+
+    <h4>Account Details:</h4>
+    <ul>
+        <li><strong>Full Name:</strong> {{ current_user.full_name }}</li>
+        <li><strong>Email:</strong> {{ current_user.email or 'Not set' }}</li>
+        <li><strong>Phone:</strong> {{ current_user.phone_number }}</li>
+        <li><a href="{{ url_for('auth.edit_profile') }}">Edit Profile</a></li>
+    </ul>
+
+{% endblock %}
+
+{% block head_extra %}
+<style>
+    .status-pending { color: orange; font-weight: bold; }
+    .status-confirmed { color: green; font-weight: bold; }
+    .status-completed { color: blue; font-weight: bold; }
+    .status-cancelled_client, .status-cancelled_freelancer { color: red; font-weight: bold; }
+    .btn-danger { background-color: #d9534f; }
+    .btn-danger:hover { background-color: #c9302c; }
+</style>
+{% endblock %}

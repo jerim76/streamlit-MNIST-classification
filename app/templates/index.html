@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - {{ super() }}{% endblock %}
+
+{% block content %}
+    <h2>Welcome to the Fundis & Freelancers Booking Platform!</h2>
+
+    {% if not current_user.is_authenticated %}
+        <p>Please <a href="{{ url_for('auth.register') }}">register</a> or <a href="{{ url_for('auth.login') }}">login</a> to continue.</p>
+    {% else %}
+        <p>Hello, {{ current_user.full_name }}! What would you like to do today?</p>
+    {% endif %}
+
+    <h3>Find Local Service Providers</h3>
+    <form action="{{ url_for('main.search_results') }}" method="get">
+        <div class="form-group">
+            <label for="service_type">Service Type (e.g., plumber, electrician, cleaner):</label>
+            <input type="text" id="service_type" name="service_type" placeholder="Plumber, Cleaner, Tutor...">
+        </div>
+        <div class="form-group">
+            <label for="location">Location:</label>
+            <input type="text" id="location" name="location" placeholder="e.g., Nairobi West, Kilimani">
+        </div>
+        <div class="form-group">
+            <input type="submit" value="Search Freelancers">
+        </div>
+    </form>
+
+    <!-- Placeholder for featured freelancers or categories -->
+    <h4>Featured Services/Categories:</h4>
+    <ul>
+        <li>Plumbing</li>
+        <li>Electrical Repairs</li>
+        <li>House Cleaning</li>
+        <li>Tutoring</li>
+        <!-- Add more or fetch dynamically later -->
+    </ul>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% from "_form_helpers.html" import render_field %}
+
+{% block title %}{{ freelancer.full_name }}'s Profile - {{ super() }}{% endblock %}
+
+{% block content %}
+    <div class="freelancer-profile">
+        <h2>{{ freelancer.full_name }} {% if freelancer.is_verified_freelancer %}<span class="verified-badge">(Verified Freelancer)</span>{% endif %}</h2>
+        <p><strong>Role:</strong> {{ freelancer.role.value.capitalize() }}</p>
+        <p><strong>Contact Phone:</strong> {{ freelancer.phone_number }}</p>
+        {% if freelancer.email %}
+            <p><strong>Contact Email:</strong> {{ freelancer.email }}</p>
+        {% endif %}
+        <p><strong>Average Rating:</strong> {{ average_rating }}</p>
+
+        <hr>
+
+        <h3>Services Offered:</h3>
+        {% if services %}
+            <ul class="service-list">
+                {% for service in services %}
+                    <li class="service-item" id="service-{{ service.id }}">
+                        <h4>{{ service.name }}</h4>
+                        <p><strong>Category:</strong> {{ service.category.name }}</p>
+                        <p><strong>Description:</strong> {{ service.description }}</p>
+                        <p><strong>Price:</strong> {{ service.price_description }} {% if service.estimated_price %}(Approx. KES {{ service.estimated_price }}){% endif %}</p>
+                        <p><strong>Location Served:</strong> {{ service.location_served or 'Not specified' }}</p>
+                        <p><strong>Availability:</strong> {{ service.availability_schedule or 'Enquire for availability' }}</p>
+
+                        {% if current_user.is_authenticated and current_user.role == UserRole.CLIENT %}
+                            <!-- Button to trigger booking modal or go to booking page -->
+                            <button class="btn book-service-btn" data-service-id="{{ service.id }}" data-service-name="{{ service.name }}" data-freelancer-id="{{ freelancer.id }}">Book This Service</button>
+                        {% elif not current_user.is_authenticated %}
+                            <p><a href="{{ url_for('auth.login', next=request.url) }}">Login to book this service</a></p>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>{{ freelancer.full_name }} has not listed any active services yet.</p>
+        {% endif %}
+
+        <hr>
+        <h3>Client Reviews (Recent):</h3>
+        {% if reviews %}
+            <ul class="review-list">
+                {% for review in reviews %}
+                    <li class="review-item">
+                        <p><strong>Rating:</strong> {{ review.rating }}/5</p>
+                        {% if review.comment %}
+                            <p><em>"{{ review.comment }}"</em></p>
+                        {% endif %}
+                        <p><small>By: {{ review.reviewer.full_name|default('Anonymous Client') }} on {{ review.created_at.strftime('%Y-%m-%d') }} for booking #{{review.booking_id}}</small></p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No reviews yet for {{ freelancer.full_name }}.</p>
+        {% endif %}
+    </div>
+
+    <!-- Booking Modal (hidden by default) -->
+    <div id="bookingModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="document.getElementById('bookingModal').style.display='none'">&times;</span>
+            <h3>Book Service: <span id="modalServiceName"></span></h3>
+            <form method="POST" action="{{ url_for('main.request_booking') }}">
+                {% if booking_form %}
+                    {{ booking_form.hidden_tag() }} {# This includes CSRF token #}
+                    {# The actual fields of BookingForm will be used by the route if they match names.
+                       Our JS sets freelancer_id and service_id, and user types others.
+                       We can render booking_form fields directly if we want styling/errors in modal,
+                       or rely on the current JS + server-side validation.
+                       For now, CSRF is the main goal here.
+                    #}
+                {% else %}
+                    <!-- Fallback or error if booking_form is not available -->
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                {% endif %}
+                <input type="hidden" name="freelancer_id" id="modalFreelancerId">
+                <input type="hidden" name="service_id" id="modalServiceId">
+
+                <div class="form-group">
+                    {# Example of using the WTForm field if desired, but requires name consistency #}
+                    {# {{ render_field(booking_form.booking_time_str, placeholder="YYYY-MM-DD HH:MM") if booking_form and booking_form.booking_time_str }} #}
+                    <label for="booking_time_str">Preferred Date and Time (YYYY-MM-DD HH:MM):</label>
+                    <input type="text" name="booking_time_str" id="booking_time_str" class="form-control" required>
+
+                </div>
+                <div class="form-group">
+                    <label for="location_address">Service Address / Location Details:</label>
+                    <textarea name="location_address" id="location_address" class="form-control" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="client_notes">Notes for Freelancer (Optional):</label>
+                    <textarea name="client_notes" id="client_notes" class="form-control"></textarea>
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Send Booking Request" class="btn">
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block head_extra %}
+<style>
+    .freelancer-profile { padding: 20px; background: #fff; border-radius: 5px; }
+    .verified-badge { color: green; font-size: 0.9em; }
+    .service-list, .review-list { list-style-type: none; padding: 0; }
+    .service-item, .review-item { background-color: #f9f9f9; border: 1px solid #eee; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+    .service-item h4, .review-item p strong { margin-top: 0; }
+    /* Basic Modal Styling */
+    .modal { position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+    .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 5px; position: relative; }
+    .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; position: absolute; top: 10px; right: 20px; }
+    .close-btn:hover, .close-btn:focus { color: black; text-decoration: none; cursor: pointer; }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('bookingModal');
+    const modalServiceName = document.getElementById('modalServiceName');
+    const modalFreelancerId = document.getElementById('modalFreelancerId');
+    const modalServiceId = document.getElementById('modalServiceId');
+
+    document.querySelectorAll('.book-service-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            modalServiceName.textContent = this.dataset.serviceName;
+            modalFreelancerId.value = this.dataset.freelancerId;
+            modalServiceId.value = this.dataset.serviceId;
+            modal.style.display = 'block';
+        });
+    });
+
+    // Close modal if user clicks outside of the modal content
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+});
+</script>
+{% endblock %}

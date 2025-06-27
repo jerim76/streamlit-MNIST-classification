@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Freelancers - {{ super() }}{% endblock %}
+
+{% block content %}
+    <h2>Manage & Verify Freelancers</h2>
+
+    {% if freelancers and freelancers.items %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Registered On</th>
+                    <th>Verified</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for freelancer in freelancers.items %}
+                    <tr>
+                        <td>{{ freelancer.id }}</td>
+                        <td>{{ freelancer.full_name }}</td>
+                        <td>{{ freelancer.phone_number }}</td>
+                        <td>{{ freelancer.email or 'N/A' }}</td>
+                        <td>{{ freelancer.created_at.strftime('%Y-%m-%d') if freelancer.created_at else 'N/A' }}</td>
+                        <td>
+                            {% if freelancer.is_verified_freelancer %}
+                                <span class="status-verified">Yes</span>
+                            {% else %}
+                                <span class="status-unverified">No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {# Use POST for actions that change state #}
+                            <form method="POST" action="{{ url_for('admin.toggle_freelancer_verification', user_id=freelancer.id) }}" style="display: inline;">
+                                <input type="submit"
+                                       value="{{ 'Revoke Verification' if freelancer.is_verified_freelancer else 'Verify Freelancer' }}"
+                                       class="btn btn-sm {{ 'btn-warning' if freelancer.is_verified_freelancer else 'btn-success' }}">
+                            </form>
+                            {# Add other actions like view profile, edit, delete later #}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        {% if freelancers.pages > 1 %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                {% if freelancers.has_prev %}
+                    <li class="page-item"><a class="page-link" href="{{ url_for('admin.manage_freelancers', page=freelancers.prev_num) }}">Previous</a></li>
+                {% endif %}
+                {% for page_num in freelancers.iter_pages() %}
+                    {% if page_num %}
+                        <li class="page-item {% if page_num == freelancers.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('admin.manage_freelancers', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                {% if freelancers.has_next %}
+                    <li class="page-item"><a class="page-link" href="{{ url_for('admin.manage_freelancers', page=freelancers.next_num) }}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+    {% else %}
+        <p>No freelancers found.</p>
+    {% endif %}
+{% endblock %}
+
+{% block head_extra %}
+<style>
+    .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    .table th { background-color: #f2f2f2; }
+    .status-verified { color: green; font-weight: bold; }
+    .status-unverified { color: red; font-weight: bold; }
+    .btn-success { background-color: #5cb85c; }
+    .btn-success:hover { background-color: #4cae4c; }
+    .btn-warning { background-color: #f0ad4e; }
+    .btn-warning:hover { background-color: #ec971f; }
+    .pagination { list-style: none; padding: 0; display: flex; margin-top:20px; }
+    .pagination .page-item { margin-right: 5px; }
+    .pagination .page-link { text-decoration: none; padding: 5px 10px; border: 1px solid #ddd; color: #337ab7; }
+    .pagination .active .page-link { background-color: #337ab7; color: white; border-color: #337ab7;}
+    .pagination .disabled .page-link { color: #777; }
+</style>
+{% endblock %}
